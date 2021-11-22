@@ -13,17 +13,19 @@ pipeline {
     }
 
     stages {
-        stage("Build and test") {
+        stage("Deploy") {
 	    agent {
     	    	kubernetes {
       		    cloud 'kubernetes'
       		    label 'drupal-pod'
-      		    yamlFile 'jenkins/drupal-pod.yaml'
 		}
 	    }
 	    steps {
-	    	container('maven') {
-                    dir("gke") {
+                sh '''
+		    ./get_helm.sh
+                    helm init --service-account=tiller && helm repo update
+		    helm install stable/drupal --name staging
+		'''
                     }
 		}
 	    }
