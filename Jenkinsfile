@@ -18,7 +18,6 @@ pipeline {
     	        kubernetes {
       		    cloud 'kubernetes'
       		    label 'gke-deploy'
-		    yamlFile 'gke/jenkins/gke-deploy-pod.yaml'
 		}
             }
 	    steps{
