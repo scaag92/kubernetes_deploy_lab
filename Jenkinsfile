@@ -13,20 +13,20 @@ pipeline {
     }
 
     stages {
-        stage("Deploy") {
-	    agent {
-    	    	kubernetes {
+        stage("Deploy to prod") {
+            agent {
+    	        kubernetes {
       		    cloud 'kubernetes'
-      		    label 'drupal-pod'
+      		    label 'gke-deploy'
+		    yamlFile 'gke/jenkins/gke-deploy-pod.yaml'
 		}
-	    }
-	    steps {
-                sh '''
-		    ./get_helm.sh
-                    helm init --service-account=tiller && helm repo update
-		    helm install stable/drupal --name staging
-		'''
-                    }
+            }
+	    steps{
+		container('gke-deploy') {
+		    sh "sed -i s#IMAGE#${GCR_IMAGE}#g gke/kubernetes/manifest.yaml"
+                    step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.STAGING_CLUSTER, location: env.PROJECT_ZONE, manifestPattern: 'deploy/manifest.yaml', credentialsId: env.JENK_INT_IT_CRED_ID, verifyDeployments: true])
 		}
-	    }
+	     }
+	}
+    }
 }
